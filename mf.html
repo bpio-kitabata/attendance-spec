@@ -332,7 +332,7 @@
       <div class="nav-item" onclick="navigate(3)">04. 取得対象期間の定義</div>
       <div class="nav-item" onclick="navigate(4)">05. シート構成</div>
       <div class="nav-item" onclick="navigate(5)">06. 不備判定ロジック</div>
-      <div class="nav-item" onclick="navigate(6)">07. セキュリティ設計</div>
+      <div class="nav-item" onclick="navigate(6)">07. システム実行スケジュール</div>
       <div class="nav-item" onclick="navigate(7)">08. Slack通知仕様</div>
       <div class="nav-item" onclick="navigate(8)">09. オプション: 手動インポート</div>
     </nav>
@@ -352,7 +352,7 @@
       <h1>MFクラウド勤怠 RPA連携<br><span class="highlight-text">自動勤怠チェックシステム 仕様書</span></h1>
       <div class="card">
         <h2>設計の基本方針</h2>
-        <p>MFクラウド勤怠からエクスポートされた「出勤簿CSV」を極力加工せずに読み込み、最新の勤怠状況を判定します。深夜にRPAがGoogle Driveへ配置したCSVをGASが解析し、AM 10:00に不備を一括通知するサイクルを構築します。</p>
+        <p>MFクラウド勤怠からエクスポートされた「出勤簿CSV」を極力加工せずに読み込み、最新の勤怠状況を判定します。深夜にRPAがGoogle Driveへ配置したCSVをGASが解析し、午前中に不備を一括通知するサイクルを構築します。</p>
         <div class="grid">
           <div class="info-box">
             <div class="label">連携方式</div>
@@ -371,14 +371,17 @@
       <div class="badge">RPA業務フロー</div>
       <h1>RPAデータ連携フロー</h1>
       <div class="card">
-        <h2>実行ステップ (深夜自動実行)</h2>
+        <h2>実行ステップ (深夜自動実行：AM 05:00目安)</h2>
         <ul style="font-size: 14px; line-height: 2;">
           <li>1. **ログイン**: 管理者アカウントでログイン。</li>
           <li>2. **画面遷移**: [全権管理者メニュー] > [連携] > [エクスポート] > [出勤簿] を選択。</li>
           <li>3. **条件設定**: 対象年月を指定し、文字コード「UTF-8」でCSV出力をリクエスト。</li>
-          <li>4. **ダウンロード**: 生成された `daily_attendance_report_...csv` を取得。</li>
-          <li>5. **Drive配置**: 指定フォルダへアップロード（既存ファイルは上書き/置換）。</li>
+          <li>4. **ダウンロード**: 生成された最新の出勤簿CSVを取得。</li>
+          <li>5. **Drive配置**: 指定フォルダへアップロード。GASが参照できるよう常に最新ファイルへ置換。</li>
         </ul>
+        <p style="font-size: 12px; color: var(--accent-mf); margin-top: 15px;">
+          ※RPAはGASの実行開始時間までに完了している必要があります。
+        </p>
       </div>
     </section>
 
@@ -433,7 +436,7 @@
       <h1>シート構成</h1>
       <div class="card">
         <h2>1. 日次勤怠シート</h2>
-        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">※CSVの全項目をそのまま展開し、右端に「判定結果」を付与します。</p>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">※同期のたびに clearContents() を行い、全件を再出力します。</p>
         <table>
           <thead>
             <tr><th>列</th><th>カラム名</th><th>役割</th></tr>
@@ -477,20 +480,30 @@
       </div>
     </section>
 
-    <!-- Slide 7: Security -->
+    <!-- Slide 7: Schedule -->
     <section class="slide">
-      <div class="badge">セキュリティ</div>
-      <h1>セキュリティ設計</h1>
+      <div class="badge">スケジュール</div>
+      <h1>システム実行スケジュール</h1>
       <div class="card">
         <div class="grid">
           <div class="info-box">
-            <div class="label">RPA Credentials</div>
-            <p style="font-size: 13px;">管理者ID/パスワードはRPAツール内でセキュアに管理。スプレッドシートやGAS上には保持しません。</p>
+            <div class="label">RPA自動実行</div>
+            <div class="value">AM 05:00</div>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">
+              最新の出勤簿CSVをエクスポートし、Google Driveへ保存。
+            </p>
           </div>
           <div class="info-box">
-            <div class="label">Data Access</div>
-            <p style="font-size: 13px;">Drive上のCSVファイルは、処理完了後に専用フォルダへアーカイブし、閲覧権限を限定します。</p>
+            <div class="label">GASトリガー</div>
+            <div class="value">AM 10:00</div>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">
+              Drive上のCSVを解析し、シート更新・Slack通知を実行。
+            </p>
           </div>
+        </div>
+        <div style="margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px; font-size: 13px;">
+          <p><strong>実行のタイムラグ設定について：</strong></p>
+          RPAの実行完了を確実に待つため、RPAとGASの開始時間を<strong>5時間</strong>空けて設定します。これにより、RPAの多少の遅延や、CSV生成の待ち時間が発生しても、GAS側でデータ欠損が起きないよう安全性を担保します。
         </div>
       </div>
     </section>
