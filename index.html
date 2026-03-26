@@ -343,7 +343,7 @@
 
     <div class="footer-note" style="border: none; flex-direction: column; gap: 4px;">
       <div>Authorized Version</div>
-      <div style="color: var(--accent-blue);">Zero-Inference Protocol</div>
+      <div style="color: var(--accent-blue);">Zero-InFERENCE Protocol</div>
     </div>
   </aside>
 
@@ -463,16 +463,19 @@
       <div class="badge">ANALYSIS</div>
       <h1>不備判定マトリックス</h1>
       <div class="card">
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+          打刻の有無と休暇申請の有無を突合し、以下の名称でステータスを確定させます。
+        </p>
         <table>
           <thead>
-            <tr><th>打刻実績</th><th>休暇申請(1:待 or 2:済)</th><th>判定結果</th></tr>
+            <tr><th>打刻実績</th><th>休暇申請(1:待 or 2:済)</th><th>判定結果（シート表示・通知用）</th></tr>
           </thead>
           <tbody>
             <tr><td>あり (両方)</td><td>なし</td><td><span class="status-pill status-ok">正常勤務</span></td>
             <tr><td>なし (両方)</td><td><strong>あり (申請中含む)</strong></td><td><span class="status-pill status-ok">有休 / 申請中</span></td>
-            <tr><td>片方のみ空</td><td>なし / 却下</td><td><span class="status-pill status-error">【要確認】打刻漏れ</span></td>
-            <tr><td>なし (両方)</td><td>なし / 却下</td><td><span class="status-pill status-error">【警告】未申請欠勤の疑い</span></td>
-            <tr><td>あり (出勤)</td><td><strong>あり (全休申請)</strong></td><td><span class="status-pill status-warn">【矛盾】有休中の打刻実績</span></td>
+            <tr><td>出勤のみ / 退勤のみ</td><td>なし / 却下</td><td><span class="status-pill status-error">出勤時打刻漏れ / 退勤時打刻漏れ</span></td>
+            <tr><td>なし (両方)</td><td>なし / 却下</td><td><span class="status-pill status-error">出退勤打刻漏れ</span></td>
+            <tr><td>あり (出勤)</td><td><strong>あり (全休申請)</strong></td><td><span class="status-pill status-warn">有給申請日に打刻あり</span></td>
           </tbody>
         </table>
       </div>
@@ -540,7 +543,7 @@
         <p style="font-size: 14px;">特殊な事情により、自動判定以外の特定月を再同期したい場合に使用するオプション画面です。</p>
         <table>
           <tr><th width="30%">設定項目</th><th>機能説明</th></tr>
-          <tr><td>対象年月指定セル</td><td>yyyy-MM形式で入力。空欄時は自動期間設定に従う。</td></tr>
+          <tr><td>対象年月指定セル</td><td>yyyy-MM-dd形式で入力。空欄時は自動期間設定に従う。</td></tr>
           <tr><td>実行ボタン</td><td>指定した月の全データをAPIから強制的に再取得し、シートを最新化。 </td></tr>
         </table>
       </div>
