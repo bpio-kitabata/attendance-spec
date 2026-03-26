@@ -334,7 +334,7 @@
       <div class="nav-item" onclick="navigate(5)">06. 不備判定ロジック</div>
       <div class="nav-item" onclick="navigate(6)">07. システム実行スケジュール</div>
       <div class="nav-item" onclick="navigate(7)">08. Slack通知仕様</div>
-      <div class="nav-item" onclick="navigate(8)">09. オプション: 手動インポート</div>
+      <div class="nav-item" onclick="navigate(8)">09. バックアップ運用（手動連携）</div>
     </nav>
 
     <div class="footer-note" style="border: none; flex-direction: column; gap: 4px;">
@@ -532,12 +532,29 @@
       </div>
     </section>
 
-    <!-- Slide 9: Option -->
+    <!-- Slide 9: Backup -->
     <section class="slide">
-      <div class="badge">オプション</div>
-      <h1>手動インポート</h1>
+      <div class="badge">バックアップ</div>
+      <h1>バックアップ運用（手動連携）</h1>
       <div class="card">
-        <p style="font-size: 14px;">緊急時、管理者がダウンロードしたCSVをGASのメニューから手動アップロード（またはシート貼り付け）することで、即時不備判定とSlack通知を実行できます。</p>
+        <p style="font-size: 14px; margin-bottom: 20px;">RPAのトラブル時や、RPAを導入しない環境での手動実行手順です。</p>
+        
+        <div class="info-box" style="margin-bottom: 20px;">
+          <div class="label">Step 1. MF勤怠からのデータ抽出</div>
+          <p style="font-size: 13px;">[全権管理者メニュー] > [連携] > [エクスポート] > [出勤簿] より、対象期間のCSVを出力して保存します。</p>
+        </div>
+
+        <div class="info-box" style="margin-bottom: 20px;">
+          <div class="label">Step 2. CSVデータのコピー＆ペースト</div>
+          <p style="font-size: 13px;">ダウンロードしたCSVファイルをExcel等で開き、**ヘッダーを含む全データ**をコピーします。</p>
+          <p style="font-size: 13px; margin-top: 8px;">スプレッドシートの「日次勤怠シート」の **A1セル** を選択して貼り付けます。</p>
+        </div>
+
+        <div class="info-box">
+          <div class="label">Step 3. 判定・通知の実行</div>
+          <p style="font-size: 13px;">スプレッドシート上部メニューの [勤怠システム] > [勤怠チェック実行] をクリックします。</p>
+          <p style="font-size: 13px; margin-top: 8px;">これにより、貼り付けられたデータに基づき「不備判定」と「Slack通知」が即時実行されます。</p>
+        </div>
       </div>
     </section>
 
