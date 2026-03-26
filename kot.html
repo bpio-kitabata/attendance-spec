@@ -10,7 +10,7 @@
       --bg-color: #0a0f1e;
       --sidebar-bg: #0d1428;
       --card-bg: #141b33;
-      --accent-kot: #FF5C00; /* KOTオレンジ */
+      --accent-kot: #FF5C00; /* KOTブランドオレンジ */
       --accent-blue: #4d94ff;
       --text-main: #ffffff;
       --text-muted: #a0a8c0;
@@ -325,17 +325,16 @@
       <div class="nav-item active" onclick="navigate(0)">01. 概要</div>
 
       <div class="nav-group-title">Technical Details</div>
-      <div class="nav-item" onclick="navigate(1)">02. 勤務実績取得仕様</div>
-      <div class="nav-item" onclick="navigate(2)">03. 休暇申請取得仕様</div>
-      <div class="nav-item" onclick="navigate(3)">04. 従業員データ取得仕様</div>
+      <div class="nav-item" onclick="navigate(1)">02. 勤務データ取得 (daily-workings)</div>
+      <div class="nav-item" onclick="navigate(2)">03. 従業員データ取得 (employees)</div>
 
       <div class="nav-group-title">Operational Flow</div>
-      <div class="nav-item" onclick="navigate(4)">05. 取得対象期間の定義</div>
-      <div class="nav-item" onclick="navigate(5)">06. シート構成と役割</div>
-      <div class="nav-item" onclick="navigate(6)">07. 不備判定ロジック</div>
-      <div class="nav-item" onclick="navigate(7)">08. セキュリティ設計</div>
-      <div class="nav-item" onclick="navigate(8)">09. Slack通知仕様</div>
-      <div class="nav-item" onclick="navigate(9)">10. オプション: 操作用シート</div>
+      <div class="nav-item" onclick="navigate(3)">04. 取得対象期間の定義</div>
+      <div class="nav-item" onclick="navigate(4)">05. シート構成と役割</div>
+      <div class="nav-item" onclick="navigate(5)">06. 不備判定ロジック</div>
+      <div class="nav-item" onclick="navigate(6)">07. セキュリティ設計</div>
+      <div class="nav-item" onclick="navigate(7)">08. Slack通知仕様</div>
+      <div class="nav-item" onclick="navigate(8)">09. オプション: 操作用シート</div>
     </nav>
 
     <div class="footer-note" style="border: none; flex-direction: column; gap: 4px;">
@@ -349,18 +348,19 @@
     
     <!-- Slide 1: Cover -->
     <section class="slide active">
+      <div class="badge">FINAL DELIVERABLE</div>
       <h1>KING OF TIME API 連携<br><span class="highlight-text">自動勤怠チェックシステム 仕様書</span></h1>
       <div class="card">
         <h2>設計の基本方針</h2>
-        <p>KING OF TIME APIから取得した「打刻実績」と「休暇申請」を突合し、勤怠不備を自動検知します。反映済みの休暇だけでなく、<strong>承認待ちの申請</strong>も別途取得することで、誤検知のない精緻なチェック体制を実現します。</p>
+        <p>KING OF TIME APIから取得した「日別勤務データ」を基に、打刻漏れや休暇不備を自動検知します。本エンドポイント単体で、打刻実績と<strong>休暇情報（全休・半休・時間休）</strong>を統合的に取得し、全自動で是正フローを回します。</p>
         <div class="grid">
           <div class="info-box">
             <div class="label">Primary Mode</div>
             <div class="value">Daily Auto-Trigger</div>
           </div>
           <div class="info-box">
-            <div class="label">Logic Principle</div>
-            <div class="value">Multi-Endpoint Cross Check</div>
+            <div class="label">Sync Logic</div>
+            <div class="value">Consolidated Endpoint Sync</div>
           </div>
         </div>
       </div>
@@ -371,57 +371,35 @@
       <div class="badge">SPECIFICATION 01</div>
       <h1>日別勤務データ取得仕様</h1>
       <div class="card">
-        <div class="label">Endpoint</div>
-        <code style="color: var(--accent-kot); display: block; margin-bottom: 10px;">GET /v1.0/daily-workings</code>
+        <div class="label">Endpoint (カテゴリ: 日別データ)</div>
+        <code style="color: var(--accent-kot); display: block; margin-bottom: 20px;">GET /v1.0/daily-workings</code>
         <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
-          ※本APIで取得できる `leaveName`（休暇名）は<strong>承認・反映済みのものに限定される</strong>ため、実績確定用として利用します。
+          打刻の有無に加え、<strong>全日休暇、半日休暇、および時間休暇（hourHolidays）</strong>の情報を一括で取得します。
         </p>
         <table>
           <thead>
             <tr><th>項目名</th><th>JSONキー</th><th>役割</th></tr>
           </thead>
           <tbody>
-            <tr><td>勤務日</td><td>date</td><td>yyyy-MM-dd。突合の主キー。</td></tr>
+            <tr><td>勤務日</td><td>date</td><td>yyyy-MM-dd。突合の主軸。</td></tr>
             <tr><td>従業員キー</td><td>employeeKey</td><td>従業員特定のID。</td></tr>
-            <tr><td>打刻実績</td><td>workingTimes[]</td><td>出勤(start)・退勤(end)時刻の有無を判定。</td></tr>
-            <tr><td>反映済休暇</td><td>leaveName</td><td>反映済みの休暇名。</td></tr>
+            <tr><td>打刻実績</td><td>workingTimes[]</td><td>出勤(start)・退勤(end)時刻の有無。</td></tr>
+            <tr><td>全休・半休</td><td>leaveName</td><td>反映済みの休暇区分（有給休暇、有休(午前)など）。</td></tr>
+            <tr><td>時間休暇</td><td>hourHolidays[]</td><td>取得した時間休の名称（name）、開始、終了時刻。</td></tr>
           </tbody>
         </table>
       </div>
     </section>
 
-    <!-- Slide 3: Leave Requests API -->
+    <!-- Slide 3: Employee API -->
     <section class="slide">
       <div class="badge">SPECIFICATION 02</div>
-      <h1>休暇申請取得仕様</h1>
-      <div class="card">
-        <div class="label">Endpoint</div>
-        <code style="color: var(--accent-kot); display: block; margin-bottom: 10px;">GET /v1.0/leave-requests</code>
-        <p style="font-size: 14px; margin-bottom: 20px;">
-          <span class="highlight-text">【必須】</span>承認待ちの申請データを取得します。実績データのみでは、未承認の休暇を「無断欠勤」と誤判定する可能性があるため、本APIでの補完が不可欠です。
-        </p>
-        <table>
-          <thead>
-            <tr><th>項目名</th><th>JSONキー</th><th>役割</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>申請対象日</td><td>date</td><td>実績データの date と突合。</td></tr>
-            <tr><td>休暇名</td><td>leaveName</td><td>有給休暇等の具体的な名称。</td></tr>
-            <tr><td>承認状況</td><td>status</td><td><strong>1 (承認待ち)</strong> のデータを「申請中」として受理。</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- Slide 4: Employee API -->
-    <section class="slide">
-      <div class="badge">SPECIFICATION 03</div>
       <h1>従業員データ取得仕様</h1>
       <div class="card">
-        <div class="label">Endpoint</div>
+        <div class="label">Endpoint (カテゴリ: 従業員)</div>
         <code style="color: var(--accent-kot); display: block; margin-bottom: 20px;">GET /v1.0/employees</code>
         <p style="font-size: 14px; margin-bottom: 20px;">
-          勤務データには姓名が含まれないため、実行開始時に本APIを一度呼び出し、employeeKeyと姓名のマッピング（Map）を作成します。
+          勤務実績データには employeeKey しか含まれないため、本APIを用いて表示用の姓名（lastName / firstName）をマッピングします。
         </p>
         <table>
           <thead>
@@ -429,13 +407,13 @@
           </thead>
           <tbody>
             <tr><td>従業員キー</td><td>key</td><td>各データの employeeKey と突合。</td></tr>
-            <tr><td>姓名</td><td>lastName / firstName</td><td>表示用姓名の構成。</td></tr>
+            <tr><td>姓名</td><td>lastName / firstName</td><td>表示用姓名。</td></tr>
           </tbody>
         </table>
       </div>
     </section>
 
-    <!-- Slide 5: Target Period -->
+    <!-- Slide 4: Target Period -->
     <section class="slide">
       <div class="badge">LOGIC</div>
       <h1>取得対象期間の定義</h1>
@@ -445,18 +423,18 @@
           <div class="info-box">
             <div class="label">毎月 1日 ～ 5日 (前月是正フェーズ)</div>
             <p style="font-size: 13px;">対象: <span class="highlight-text">前月1日 ～ 前月末日</span></p>
-            <p style="font-size: 11px; color: var(--text-muted); margin-top: 10px;">目的: <strong>締めチェック。</strong> 確定に向けたデータの最終整合性確保。 </p>
+            <p style="font-size: 11px; color: var(--text-muted); margin-top: 10px;">目的: 締めチェック。データの最終整合性確保。 </p>
           </div>
           <div class="info-box">
             <div class="label">毎月 6日 ～ 末日 (当月是正フェーズ)</div>
             <p style="font-size: 13px;">対象: <span class="highlight-text">当月1日 ～ 実行日前日</span></p>
-            <p style="font-size: 11px; color: var(--text-muted); margin-top: 10px;">目的: <strong>日次是正。</strong> 発生した不備を即時通知。 </p>
+            <p style="font-size: 11px; color: var(--text-muted); margin-top: 10px;">目的: 日次是正。発生した不備を即時通知。 </p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Slide 6: Sheet Definitions -->
+    <!-- Slide 5: Sheet Definitions -->
     <section class="slide">
       <div class="badge">SHEET DESIGN</div>
       <h1>シート構成と役割</h1>
@@ -472,7 +450,7 @@
             <tr><td>B</td><td>日付</td><td>yyyy-MM-dd</td></tr>
             <tr><td>C</td><td>出勤時刻</td><td>daily-workings実績 (HH:mm)</td></tr>
             <tr><td>D</td><td>退勤時刻</td><td>daily-workings実績 (HH:mm)</td></tr>
-            <tr><td>E</td><td>休暇区分</td><td>反映済休暇 または <strong>申請中休暇（承認待ち）</strong></td></tr>
+            <tr><td>E</td><td>休暇区分</td><td>leaveName または hourHolidays[].name</td></tr>
             <tr><td>F</td><td>判定結果</td><td>不備判定ロジックに基づくステータス</td></tr>
           </tbody>
         </table>
@@ -483,30 +461,33 @@
       </div>
     </section>
 
-    <!-- Slide 7: Matrix -->
+    <!-- Slide 6: Matrix -->
     <section class="slide">
       <div class="badge">ANALYSIS</div>
-      <h1>不備判定マトリックス</h1>
+      <h1>不備判定ロジック</h1>
       <div class="card">
         <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
-          打刻実績と、反映済休暇・申請中休暇を突合して判定します。
+          打刻の有無と、休暇情報（全休・半休・時間休）を突合して判定を下します。
         </p>
         <table>
           <thead>
-            <tr><th>打刻実績</th><th>休暇(反映済 or 申請中)</th><th>判定結果（通知用）</th></tr>
+            <tr><th>打刻実績</th><th>休暇情報(全休・半休・時間休)</th><th>判定結果（通知用）</th></tr>
           </thead>
           <tbody>
-            <tr><td>あり (両方)</td><td>なし</td><td><span class="status-pill status-ok">正常勤務</span></td>
-            <tr><td>なし (両方)</td><td><strong>あり</strong></td><td><span class="status-pill status-ok">有休 / 申請中</span></td>
-            <tr><td>片方のみ空</td><td>なし</td><td><span class="status-pill status-error">出勤打刻漏れ / 退勤時打刻漏れ</span></td>
-            <tr><td>なし (両方)</td><td>なし</td><td><span class="status-pill status-error">出退勤打刻漏れ</span></td>
-            <tr><td>あり (打刻あり)</td><td><strong>あり (全休)</strong></td><td><span class="status-pill status-warn">有給申請日に打刻あり</span></td>
+            <tr><td>あり (両方)</td><td>なし / 半休 / 時間休</td><td><span class="status-pill status-ok">正常勤務</span></td>
+            <tr><td>なし (両方)</td><td><strong>全日休暇あり</strong></td><td><span class="status-pill status-ok">有給休暇等</span></td>
+            <tr><td>片方のみ空</td><td>なし / 半休 / 時間休</td><td><span class="status-pill status-error">出勤打刻漏れ / 退勤時打刻漏れ</span></td>
+            <tr><td>なし (両方)</td><td>なし / 半休 / 時間休</td><td><span class="status-pill status-error">出退勤打刻漏れ</span></td>
+            <tr><td>あり (打刻あり)</td><td><strong>全日休暇あり</strong></td><td><span class="status-pill status-warn">有給申請日に打刻あり</span></td>
           </tbody>
         </table>
+        <p style="font-size: 11px; color: var(--text-muted); margin-top: 15px;">
+          ※半休や時間休の場合、残りの勤務時間に打刻が必要なため、打刻がない場合は「打刻漏れ」として検知します。
+        </p>
       </div>
     </section>
 
-    <!-- Slide 8: Security -->
+    <!-- Slide 7: Security -->
     <section class="slide">
       <div class="badge">SECURITY</div>
       <h1>セキュリティ設計</h1>
@@ -524,7 +505,7 @@
       </div>
     </section>
 
-    <!-- Slide 9: Slack Notification -->
+    <!-- Slide 8: Slack Notification -->
     <section class="slide">
       <div class="badge">NOTIFICATION</div>
       <h1>Slack通知仕様</h1>
@@ -549,7 +530,7 @@
       </div>
     </section>
 
-    <!-- Slide 10: Optional Features -->
+    <!-- Slide 9: Optional Features -->
     <section class="slide">
       <div class="badge">OPTION</div>
       <h1>操作用シート (手動指定)</h1>
