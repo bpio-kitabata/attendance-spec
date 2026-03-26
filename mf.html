@@ -326,7 +326,7 @@
 
       <div class="nav-group-title">RPA Operations</div>
       <div class="nav-item" onclick="navigate(1)">02. RPAデータ連携フロー</div>
-      <div class="nav-item" onclick="navigate(2)">03. 出勤簿CSV抽出仕様</div>
+      <div class="nav-item" onclick="navigate(2)">03. 出勤簿CSVレイアウト仕様</div>
 
       <div class="nav-group-title">Operational Flow</div>
       <div class="nav-item" onclick="navigate(3)">04. 取得対象期間の定義</div>
@@ -348,19 +348,19 @@
     
     <!-- Slide 1: Cover -->
     <section class="slide active">
-      <div class="badge">SPECIFICATION</div>
+      <div class="badge">仕様書</div>
       <h1>MFクラウド勤怠 RPA連携<br><span class="highlight-text">自動勤怠チェックシステム 仕様書</span></h1>
       <div class="card">
         <h2>設計の基本方針</h2>
-        <p>MFクラウド勤怠からエクスポートされたCSVを基に、最新の勤怠状況をスプレッドシートへ反映します。常に最新の一覧性を保ちつつ、新規に検知された不備のみをSlackへ通知する、効率的な管理体制を構築します。</p>
+        <p>MFクラウド勤怠からエクスポートされた「出勤簿CSV」を極力加工せずに読み込み、最新の勤怠状況を判定します。深夜にRPAがGoogle Driveへ配置したCSVをGASが解析し、AM 10:00に不備を一括通知するサイクルを構築します。</p>
         <div class="grid">
           <div class="info-box">
-            <div class="label">Primary Mode</div>
-            <div class="value">RPA + GAS Hybrid</div>
+            <div class="label">連携方式</div>
+            <div class="value">RPA + CSV + GAS</div>
           </div>
           <div class="info-box">
-            <div class="label">Sync Strategy</div>
-            <div class="value">Full Data Refresh</div>
+            <div class="label">同期戦略</div>
+            <div class="value">CSVダイレクトパース</div>
           </div>
         </div>
       </div>
@@ -368,37 +368,39 @@
 
     <!-- Slide 2: RPA Workflow -->
     <section class="slide">
-      <div class="badge">RPA OPERATIONS</div>
+      <div class="badge">RPA業務フロー</div>
       <h1>RPAデータ連携フロー</h1>
       <div class="card">
         <h2>実行ステップ (深夜自動実行)</h2>
         <ul style="font-size: 14px; line-height: 2;">
-          <li>1. **ログイン**: 管理者アカウントでMFクラウド勤怠にログイン。</li>
+          <li>1. **ログイン**: 管理者アカウントでログイン。</li>
           <li>2. **画面遷移**: [全権管理者メニュー] > [連携] > [エクスポート] > [出勤簿] を選択。</li>
-          <li>3. **条件設定**: 対象期間（前月分または当月分）を指定し、CSV出力をリクエスト。</li>
-          <li>4. **ダウンロード**: 生成されたCSVファイルを一時保持。</li>
-          <li>5. **Drive配置**: 指定したGoogle Driveフォルダへアップロード（既存ファイルは上書き/置換）。</li>
+          <li>3. **条件設定**: 対象年月を指定し、文字コード「UTF-8」でCSV出力をリクエスト。</li>
+          <li>4. **ダウンロード**: 生成された `daily_attendance_report_...csv` を取得。</li>
+          <li>5. **Drive配置**: 指定フォルダへアップロード（既存ファイルは上書き/置換）。</li>
         </ul>
       </div>
     </section>
 
-    <!-- Slide 3: CSV Specification -->
+    <!-- Slide 3: CSV Layout Specification -->
     <section class="slide">
-      <div class="badge">TECHNICAL SPEC</div>
-      <h1>出勤簿CSV抽出仕様</h1>
+      <div class="badge">技術仕様</div>
+      <h1>出勤簿CSVレイアウト仕様</h1>
       <div class="card">
         <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
-          最新のCSVデータを読み込み、以下の項目をシートへマッピングします。
+          実物の出勤簿CSVから不備判定に直接使用する主要な項目は以下の通りです。
         </p>
         <table>
           <thead>
-            <tr><th>CSV項目名</th><th>パース内容</th><th>役割</th></tr>
+            <tr><th>CSV列名 (ヘッダー)</th><th>内容例</th><th>判定への活用</th></tr>
           </thead>
           <tbody>
-            <tr><td>日付</td><td>yyyy/MM/dd</td><td>表示およびキー項目。</td></tr>
-            <tr><td>氏名</td><td>String</td><td>従業員名。</td></tr>
-            <tr><td>出勤 / 退勤</td><td>HH:mm</td><td>打刻実績の有無。</td></tr>
-            <tr><td>勤怠状況</td><td>String</td><td>「有給休暇」「欠勤」等のフラグ。</td></tr>
+            <tr><td>氏名</td><td>髙田 勝一</td><td>従業員特定。</td></tr>
+            <tr><td>日付</td><td>2026/02/01</td><td>日付特定。</td></tr>
+            <tr><td>出勤</td><td>08:30</td><td>打刻有無の判定（空欄チェック）。</td></tr>
+            <tr><td>退勤</td><td>17:30</td><td>打刻有無の判定（空欄チェック）。</td></tr>
+            <tr><td>勤怠区分</td><td>平日 / 有給休暇</td><td>平日なのに打刻がない場合に「不備」とする。</td></tr>
+            <tr><td>勤務パターン</td><td>①8:30～17:30</td><td>パターンがあるのに打刻がない不備を検知。</td></tr>
           </tbody>
         </table>
       </div>
@@ -406,7 +408,7 @@
 
     <!-- Slide 4: Target Period -->
     <section class="slide">
-      <div class="badge">LOGIC</div>
+      <div class="badge">運用ロジック</div>
       <h1>取得対象期間の定義</h1>
       <div class="card">
         <h2>CSV出力時の期間指定</h2>
@@ -427,64 +429,67 @@
 
     <!-- Slide 5: Sheet Structure -->
     <section class="slide">
-      <div class="badge">DATA STRUCTURE</div>
+      <div class="badge">データ構造</div>
       <h1>シート構成</h1>
       <div class="card">
         <h2>1. 日次勤怠シート</h2>
-        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">※同期のたびに clearContents() を行い、全件を再出力します。</p>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">※CSVの全項目をそのまま展開し、右端に「判定結果」を付与します。</p>
         <table>
           <thead>
             <tr><th>列</th><th>カラム名</th><th>役割</th></tr>
           </thead>
           <tbody>
-            <tr><td>A-E</td><td>CSV抽出データ</td><td>最新の打刻・休暇状況をそのまま反映</td></tr>
-            <tr><td>F</td><td>判定結果</td><td>最新の状態に基づき「正常」「打刻漏れ」を再判定</td></tr>
+            <tr><td>A-X</td><td>CSV全データ</td><td>CSVのヘッダー順に従い全項目を無加工で展開</td></tr>
+            <tr><td>Y</td><td>判定結果</td><td>「正常」「打刻漏れ」等のステータス</td></tr>
           </tbody>
         </table>
       </div>
       <div class="card">
         <h2>2. 勤怠不備シート</h2>
-        <p style="font-size: 13px; margin-bottom: 15px;">不備が発生しているレコードのみを表示する**「現時点の不備リスト」**です。</p>
+        <p style="font-size: 13px; margin-bottom: 15px;">不備が発生しているレコードのみを「日次勤怠シート」から抽出して同期します。</p>
         <ul style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">
           <li><strong>データ同期:</strong> 毎回クリアされ、最新のCSVで見つかった不備のみが表示されます。</li>
-          <li><strong>通知制御:</strong> スプレッドシート上は更新されますが、Slack通知時には「通知履歴」を別途参照し、同じ不備を二度通知しないよう管理します。</li>
+          <li><strong>通知制御:</strong> Slack通知済みかどうかの履歴を裏で持ち、同じ不備を二度通知しないよう管理します。</li>
         </ul>
       </div>
     </section>
 
     <!-- Slide 6: Matrix -->
     <section class="slide">
-      <div class="badge">ANALYSIS</div>
-      <h1>不備判定ロジック</h1>
+      <div class="badge">判定ロジック</div>
+      <h1>不備判定ロジックの詳細</h1>
       <div class="card">
         <table>
           <thead>
-            <tr><th>打刻実績</th><th>勤怠状況(休暇等)</th><th>判定結果（シート表示用）</th></tr>
+            <tr><th>勤怠区分</th><th>勤務パターン</th><th>打刻(出勤/退勤)</th><th>判定結果</th></tr>
           </thead>
           <tbody>
-            <tr><td>あり (両方)</td><td>なし / 半休</td><td><span class="status-pill status-ok">正常勤務</span></td>
-            <tr><td>なし (両方)</td><td><strong>全日休暇あり</strong></td><td><span class="status-pill status-ok">有給休暇等</span></td>
-            <tr><td>片方のみ空</td><td>なし / 半休</td><td><span class="status-pill status-error">出勤打刻漏れ / 退勤時打刻漏れ</span></td>
-            <tr><td>なし (両方)</td><td>なし / 半休</td><td><span class="status-pill status-error">出退勤打刻漏れ</span></td>
-            <tr><td>あり (打刻あり)</td><td><strong>全日休暇あり</strong></td><td><span class="status-pill status-warn">有給申請日に打刻あり</span></td>
+            <tr><td>平日 / 祝日</td><td>設定あり</td><td>両方あり</td><td><span class="status-pill status-ok">正常勤務</span></td>
+            <tr><td>有給休暇</td><td>任意</td><td>なし</td><td><span class="status-pill status-ok">有給休暇等</span></td>
+            <tr><td>平日</td><td>設定あり</td><td>片方のみ空</td><td><span class="status-pill status-error">出勤打刻漏れ / 退勤時打刻漏れ</span></td>
+            <tr><td>平日</td><td>設定あり</td><td>両方なし</td><td><span class="status-pill status-error">出退勤打刻漏れ</span></td>
+            <tr><td>有給休暇</td><td>任意</td><td>あり</td><td><span class="status-pill status-warn">有給申請日に打刻あり</span></td>
           </tbody>
         </table>
+        <p style="font-size: 11px; color: var(--text-muted); margin-top: 15px;">
+          ※「勤務パターン」が空欄かつ打刻がない場合は、シフトなしの日として不備対象外とします。
+        </p>
       </div>
     </section>
 
     <!-- Slide 7: Security -->
     <section class="slide">
-      <div class="badge">SECURITY</div>
+      <div class="badge">セキュリティ</div>
       <h1>セキュリティ設計</h1>
       <div class="card">
         <div class="grid">
           <div class="info-box">
             <div class="label">RPA Credentials</div>
-            <p style="font-size: 13px;">ログイン情報はRPAツール側のセキュアストレージで管理。GASやシート上には公開しません。</p>
+            <p style="font-size: 13px;">管理者ID/パスワードはRPAツール内でセキュアに管理。スプレッドシートやGAS上には保持しません。</p>
           </div>
           <div class="info-box">
-            <div class="label">Data Source</div>
-            <p style="font-size: 13px;">Google Drive上のCSVは、処理完了後にアーカイブまたは専用フォルダへ移動し、アクセス権を制限します。</p>
+            <div class="label">Data Access</div>
+            <p style="font-size: 13px;">Drive上のCSVファイルは、処理完了後に専用フォルダへアーカイブし、閲覧権限を限定します。</p>
           </div>
         </div>
       </div>
@@ -492,27 +497,22 @@
 
     <!-- Slide 8: Slack Notification -->
     <section class="slide">
-      <div class="badge">NOTIFICATION</div>
+      <div class="badge">通知仕様</div>
       <h1>Slack通知仕様</h1>
       <div class="card">
-        <h2>通知ルール</h2>
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
-          最新の「勤怠不備シート」にあるレコードのうち、**まだ通知していない新規分**のみを AM 10:00 にまとめて送信します。
-        </p>
         <div class="slack-mockup">
           <div class="slack-header">
             <div class="slack-bot-icon">M</div>
             <span class="slack-bot-name">MF Attendance Bot</span>
-            <span class="slack-app-tag">APP</span>
+            <span class="slack-app-tag">アプリ</span>
             <span class="slack-time">10:05 AM</span>
           </div>
           <div class="slack-content">
             <div class="slack-message-title">本日迄の勤怠不備をお知らせします</div>
             <div class="slack-attachment">
-              <div class="slack-line">2026-03-24 <strong>田中 太郎</strong>　出退勤打刻漏れ</div>
-              <div class="slack-line">2026-03-25 <strong>田中 太郎</strong>　出退勤打刻漏れ</div>
-              <div class="slack-line">2026-03-24 <strong>佐藤 花子</strong>　退勤時打刻漏れ</div>
-              <div class="slack-line">2026-03-25 <strong>佐藤 花子</strong>　有給申請日に打刻あり</div>
+              <div class="slack-line">2026-03-24 <strong>髙田 勝一</strong>　出退勤打刻漏れ</div>
+              <div class="slack-line">2026-03-25 <strong>髙田 勝一</strong>　出退勤打刻漏れ</div>
+              <div class="slack-line">2026-03-24 <strong>北畑 亮二</strong>　退勤時打刻漏れ</div>
             </div>
           </div>
         </div>
@@ -521,10 +521,10 @@
 
     <!-- Slide 9: Option -->
     <section class="slide">
-      <div class="badge">OPTION</div>
+      <div class="badge">オプション</div>
       <h1>手動インポート</h1>
       <div class="card">
-        <p style="font-size: 14px;">イレギュラーなタイミングで確認したい場合、管理者が手動で最新のCSVをインポートして即時判定を実行できます。</p>
+        <p style="font-size: 14px;">緊急時、管理者がダウンロードしたCSVをGASのメニューから手動アップロード（またはシート貼り付け）することで、即時不備判定とSlack通知を実行できます。</p>
       </div>
     </section>
 
