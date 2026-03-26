@@ -17,6 +17,8 @@
       --nav-hover: #1a2441;
       --success: #4ade80;
       --error: #f87171;
+      --slack-bg: #ffffff;
+      --slack-text: #1d1c1d;
     }
 
     body, html {
@@ -245,6 +247,71 @@
       color: var(--accent-yellow);
       font-weight: 700;
     }
+
+    /* --- SLACK MOCKUP --- */
+    .slack-mockup {
+      background-color: var(--slack-bg);
+      color: var(--slack-text);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-top: 20px;
+    }
+    .slack-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .slack-bot-icon {
+      width: 36px;
+      height: 36px;
+      background-color: #4a154b;
+      border-radius: 4px;
+      margin-right: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 20px;
+    }
+    .slack-bot-name {
+      font-weight: 900;
+      font-size: 15px;
+      margin-right: 8px;
+    }
+    .slack-time {
+      font-size: 12px;
+      color: #616061;
+    }
+    .slack-app-tag {
+      background-color: #f8f8f8;
+      border: 1px solid #e2e2e2;
+      border-radius: 2px;
+      padding: 0 4px;
+      font-size: 10px;
+      color: #616061;
+      margin-left: 4px;
+    }
+    .slack-content {
+      margin-left: 48px;
+      line-height: 1.46668;
+    }
+    .slack-message-title {
+      font-weight: bold;
+      color: #1d1c1d;
+      margin-bottom: 12px;
+    }
+    .slack-attachment {
+      border-left: 4px solid #e01e5a;
+      padding-left: 12px;
+      margin-top: 8px;
+      font-size: 14px;
+    }
+    .slack-line {
+      margin-bottom: 4px;
+    }
   </style>
 </head>
 <body>
@@ -270,7 +337,8 @@
       <div class="nav-item" onclick="navigate(4)">05. シート構成と役割</div>
       <div class="nav-item" onclick="navigate(5)">06. 不備判定ロジック</div>
       <div class="nav-item" onclick="navigate(6)">07. セキュリティ設計</div>
-      <div class="nav-item" onclick="navigate(7)">08. オプション: 操作用シート</div>
+      <div class="nav-item" onclick="navigate(7)">08. Slack通知仕様</div>
+      <div class="nav-item" onclick="navigate(8)">09. オプション: 操作用シート</div>
     </nav>
 
     <div class="footer-note" style="border: none; flex-direction: column; gap: 4px;">
@@ -430,7 +498,41 @@
       </div>
     </section>
 
-    <!-- Slide 8: Optional Features -->
+    <!-- Slide 8: Slack Notification -->
+    <section class="slide">
+      <div class="badge">NOTIFICATION</div>
+      <h1>Slack通知仕様</h1>
+      <div class="card">
+        <h2>通知のルール</h2>
+        <p style="font-size: 13px;">判定結果が「正常」以外の不備レコードのみを、最小限の構成で通知します。</p>
+        <ul style="font-size: 13px; color: var(--text-muted); line-height: 1.6;">
+          <li><strong>ソート順:</strong> 従業員ごとにグループ化し、日付の昇順でリストアップ。</li>
+          <li><strong>集約送信:</strong> 全不備を1つのメッセージにまとめて送信（AM 10:00実行後）。</li>
+          <li><strong>二重通知防止:</strong> 既に通知済みの「日+人+不備種別」の組み合わせはスキップ。</li>
+        </ul>
+
+        <h2 style="margin-top: 30px;">通知イメージ</h2>
+        <div class="slack-mockup">
+          <div class="slack-header">
+            <div class="slack-bot-icon">J</div>
+            <span class="slack-bot-name">Jinjer Attendance Bot</span>
+            <span class="slack-app-tag">APP</span>
+            <span class="slack-time">10:05 AM</span>
+          </div>
+          <div class="slack-content">
+            <div class="slack-message-title">本日迄の勤怠不備をお知らせします</div>
+            <div class="slack-attachment">
+              <div class="slack-line">2026-03-24 <strong>田中 太郎</strong>　出退勤打刻漏れ</div>
+              <div class="slack-line">2026-03-25 <strong>田中 太郎</strong>　出退勤打刻漏れ</div>
+              <div class="slack-line">2026-03-24 <strong>佐藤 花子</strong>　退勤時打刻漏れ</div>
+              <div class="slack-line">2026-03-25 <strong>佐藤 花子</strong>　有給申請日に打刻あり【要確認】</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 9: Optional Features -->
     <section class="slide">
       <div class="badge">OPTION</div>
       <h1>操作用シート (手動指定)</h1>
