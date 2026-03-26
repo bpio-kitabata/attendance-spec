@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+  <!-- 文字化け防止の最重要タグ。必ずheadの直後に配置 -->
   <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Jinjer API 勤怠チェックシステム 仕様書</title>
   <style>
@@ -22,7 +24,7 @@
       margin: 0;
       padding: 0;
       height: 100%;
-      font-family: 'Inter', 'Hiragino Kaku Gothic ProN', sans-serif;
+      font-family: 'Inter', 'Hiragino Kaku Gothic ProN', 'ヒラギノ角ゴ ProN W3', 'Meiryo', sans-serif;
       background-color: var(--bg-color);
       color: var(--text-main);
       overflow: hidden;
@@ -287,7 +289,7 @@
       <h1>Jinjer API 連携<br><span class="highlight-text">自動勤怠チェックシステム 仕様書</span></h1>
       <div class="card">
         <h2>設計の基本方針</h2>
-        <p>Jinjer APIから取得した「打刻実績」と「休暇申請」を突合し、勤怠不備を自動検知します。日次の自動トリガー実行を基盤とし、管理者の目視確認を不要にする「全自動運用」を目的とした設計です。</p>
+        <p>Jinjer APIから取得した「打刻実績」と「休暇申請」を突合し、勤怠不備を自動検知します。深夜の自動トリガー実行を基盤とし、管理者の目視確認を不要にする「全自動運用」を目的とした設計です。</p>
         <div class="grid">
           <div class="info-box">
             <div class="label">Primary Mode</div>
@@ -346,7 +348,7 @@
       <h1>取得対象期間の定義</h1>
       <div class="card">
         <h2>実行日による自動切り替え</h2>
-        <p style="font-size: 14px;">自動トリガー実行時の日付に応じて、取得範囲を動的に設定。月中は日次是正、月初は前月反映を目的に最適化します。</p>
+        <p style="font-size: 14px;">自動トリガー実行時の日付に応じて、取得範囲を動的に設定。月中は日次是正、月初は前月是正を目的に最適化します。</p>
         <div class="grid">
           <div class="info-box">
             <div class="label">毎月 1日 ～ 5日 (前月是正フェーズ)</div>
@@ -354,7 +356,7 @@
             <p style="font-size: 11px; color: var(--text-muted); margin-top: 10px;">目的: <strong>前月勤怠の締めチェック。</strong> 確定に向けたデータの最終整合性確保。 </p>
           </div>
           <div class="info-box">
-            <div class="label">毎月 6日 ～ 末日 (当月是正フェーズ)</div>
+            <div class="label">毎月 6日 ～ 末日 (日次是正フェーズ)</div>
             <p style="font-size: 13px;">対象: <span class="highlight-text">当月1日 ～ 実行日前日</span></p>
             <p style="font-size: 11px; color: var(--text-muted); margin-top: 10px;">目的: <strong>日次の勤怠是正。</strong> 発生した不備を早期に検知し、即時修正を促進。 </p>
           </div>
@@ -399,7 +401,7 @@
             <tr><th>打刻実績</th><th>休暇申請(1:待 or 2:済)</th><th>判定結果</th></tr>
           </thead>
           <tbody>
-            <tr><td>あり (両方)</td><td>なし</td><td><span class="status-pill status-ok">正常</span></td>
+            <tr><td>あり (両方)</td><td>なし</td><td><span class="status-pill status-ok">正常勤務</span></td>
             <tr><td>なし (両方)</td><td><strong>あり (申請中含む)</strong></td><td><span class="status-pill status-ok">有休 / 申請中</span></td>
             <tr><td>片方のみ空</td><td>なし / 却下</td><td><span class="status-pill status-error">【要確認】打刻漏れ</span></td>
             <tr><td>なし (両方)</td><td>なし / 却下</td><td><span class="status-pill status-error">【警告】未申請欠勤の疑い</span></td>
