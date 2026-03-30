@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+  <!-- 文字化け防止の最重要タグ。必ずheadの直後に配置 -->
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,8 +18,6 @@
       --nav-hover: #1a2441;
       --success: #4ade80;
       --error: #f87171;
-      --slack-bg: #ffffff;
-      --slack-text: #1d1c1d;
     }
 
     body, html {
@@ -106,7 +105,7 @@
     .nav-item.active {
       background-color: var(--nav-hover);
       color: var(--text-main);
-      box-shadow: inset 4px 0 0 var(--accent-yellow);
+      box-shadow: inset 4px 0 0 var(--accent-blue);
     }
 
     /* --- MAIN CONTENT --- */
@@ -145,29 +144,10 @@
       border: 1px solid rgba(77, 148, 255, 0.3);
     }
 
-    .label-endpoint {
-      font-size: 12px;
-      color: var(--accent-yellow);
-      font-weight: 700;
-      margin-bottom: 8px;
-      text-transform: uppercase;
-    }
-
-    .endpoint-path {
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 18px;
-      color: var(--accent-yellow);
-      background: rgba(255, 224, 102, 0.1);
-      padding: 10px 16px;
-      border-radius: 8px;
-      display: inline-block;
-      margin-bottom: 30px;
-    }
-
     h1 {
       font-size: 40px;
       font-weight: 800;
-      margin-bottom: 20px;
+      margin-bottom: 40px;
       line-height: 1.1;
       letter-spacing: -1px;
     }
@@ -266,71 +246,6 @@
       color: var(--accent-yellow);
       font-weight: 700;
     }
-
-    /* --- SLACK MOCKUP --- */
-    .slack-mockup {
-      background-color: var(--slack-bg);
-      color: var(--slack-text);
-      border-radius: 8px;
-      padding: 16px;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      margin-top: 20px;
-    }
-    .slack-header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-    .slack-bot-icon {
-      width: 36px;
-      height: 36px;
-      background-color: #ffe066;
-      border-radius: 4px;
-      margin-right: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #0d1428;
-      font-weight: bold;
-      font-size: 20px;
-    }
-    .slack-bot-name {
-      font-weight: 900;
-      font-size: 15px;
-      margin-right: 8px;
-    }
-    .slack-time {
-      font-size: 12px;
-      color: #616061;
-    }
-    .slack-app-tag {
-      background-color: #f8f8f8;
-      border: 1px solid #e2e2e2;
-      border-radius: 2px;
-      padding: 0 4px;
-      font-size: 10px;
-      color: #616061;
-      margin-left: 4px;
-    }
-    .slack-content {
-      margin-left: 48px;
-      line-height: 1.46668;
-    }
-    .slack-message-title {
-      font-weight: bold;
-      color: #1d1c1d;
-      margin-bottom: 12px;
-    }
-    .slack-attachment {
-      border-left: 4px solid #ffe066;
-      padding-left: 12px;
-      margin-top: 8px;
-      font-size: 14px;
-    }
-    .slack-line {
-      margin-bottom: 4px;
-    }
   </style>
 </head>
 <body>
@@ -348,20 +263,20 @@
       <div class="nav-item active" onclick="navigate(0)">01. 概要</div>
 
       <div class="nav-group-title">Technical Details</div>
-      <div class="nav-item" onclick="navigate(1)">02. 従業員名簿取得仕様</div>
-      <div class="nav-item" onclick="navigate(2)">03. 日次打刻実績取得仕様</div>
+      <div class="nav-item" onclick="navigate(1)">02. 打刻実績取得仕様 (/v2)</div>
+      <div class="nav-item" onclick="navigate(2)">03. 休暇申請取得仕様 (/v2)</div>
 
       <div class="nav-group-title">Operational Flow</div>
       <div class="nav-item" onclick="navigate(3)">04. 取得対象期間の定義</div>
       <div class="nav-item" onclick="navigate(4)">05. シート構成と役割</div>
       <div class="nav-item" onclick="navigate(5)">06. 不備判定ロジック</div>
       <div class="nav-item" onclick="navigate(6)">07. セキュリティ設計</div>
-      <div class="nav-item" onclick="navigate(7)">08. Slack通知仕様</div>
+      <div class="nav-item" onclick="navigate(7)">08. オプション: 操作用シート</div>
     </nav>
 
     <div class="footer-note" style="border: none; flex-direction: column; gap: 4px;">
       <div>Authorized Version</div>
-      <div style="color: var(--accent-blue);">Zero-Inference Protocol v18.0</div>
+      <div style="color: var(--accent-blue);">Zero-Inference Protocol</div>
     </div>
   </aside>
 
@@ -370,64 +285,58 @@
     
     <!-- Slide 1: Cover -->
     <section class="slide active">
-      <div class="badge">SPECIFICATION v18.0</div>
+      <div class="badge">FINAL DELIVERABLE</div>
       <h1>Jinjer API 連携<br><span class="highlight-text">自動勤怠チェックシステム 仕様書</span></h1>
       <div class="card">
         <h2>設計の基本方針</h2>
-        <p>Jinjer APIから「従業員名簿」と「日次打刻実績」を高速並列取得し、勤怠不備を自動判定します。「日次勤怠」シートに全件を出力しつつ、是正が必要な不備レコードのみを「勤怠不備」シートへ抽出・集約する運用設計です。</p>
+        <p>Jinjer APIから取得した「打刻実績」と「休暇申請」を突合し、勤怠不備を自動検知します。深夜の自動トリガー実行を基盤とし、管理者の目視確認を不要にする「全自動運用」を目的とした設計です。</p>
         <div class="grid">
           <div class="info-box">
-            <div class="label">Primary Engine</div>
-            <div class="value">GAS fetchAll (Parallel)</div>
+            <div class="label">Primary Mode</div>
+            <div class="value">Daily Auto-Trigger</div>
           </div>
           <div class="info-box">
-            <div class="label">Sync Strategy</div>
-            <div class="value">Multi-Sheet Sync (洗い替え)</div>
+            <div class="label">Control Method</div>
+            <div class="value">Scheduled Sync</div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Slide 2: Employee API -->
+    <!-- Slide 2: Attendance API -->
     <section class="slide">
       <div class="badge">SPECIFICATION 01</div>
-      <h1>従業員名簿取得仕様</h1>
+      <h1>打刻実績取得仕様 (/v2/attendances)</h1>
       <div class="card">
-        <div class="label-endpoint">ENDPOINT (カテゴリ: 従業員)</div>
-        <div class="endpoint-path">GET /v1/employees</div>
-        
-        <p style="font-size: 14px; margin-bottom: 20px;">社員番号と氏名のマッピングに使用。100名を超える場合も考慮し、ページネーションをループ実行して全件取得します。</p>
+        <p style="font-size: 14px; margin-bottom: 20px;">実績データを「打刻日」単位で取得。ページネーションを完遂させ、全従業員の打刻有無を確定させます。</p>
         <table>
           <thead>
             <tr><th>項目名</th><th>キー (JSON)</th><th>役割</th></tr>
           </thead>
           <tbody>
-            <tr><td>社員番号</td><td class="blue-text">company.employee_code</td><td>マッピングの主軸。</td></tr>
-            <tr><td>氏名</td><td class="highlight-text">personal.last_name / first_name</td><td>表示用氏名を生成。</td></tr>
-            <tr><td>在籍区分</td><td>enrollment-classification-id</td><td>パラメータ 0 (在籍) を指定。</td></tr>
+            <tr><td>打刻日付</td><td class="blue-text">date</td><td>データ結合の主軸。yyyy-MM-dd。</td></tr>
+            <tr><td>出勤時刻</td><td class="highlight-text">attended_at</td><td>yyyy-MM-dd hh:mm:ss。打刻の有無を判定。</td></tr>
+            <tr><td>退勤時刻</td><td class="highlight-text">left_at</td><td>yyyy-MM-dd hh:mm:ss。打刻の有無を判定。</td></tr>
+            <tr><td>欠勤フラグ</td><td>is_absent</td><td>boolean。未申請欠勤の確認に使用。</td></tr>
           </tbody>
         </table>
       </div>
     </section>
 
-    <!-- Slide 3: Attendance API -->
+    <!-- Slide 3: Vacation API -->
     <section class="slide">
       <div class="badge">SPECIFICATION 02</div>
-      <h1>日次打刻実績取得仕様</h1>
+      <h1>休暇申請取得仕様 (/v2/employees/requested-day-offs)</h1>
       <div class="card">
-        <div class="label-endpoint">ENDPOINT (カテゴリ: 日別データ)</div>
-        <div class="endpoint-path">GET /v1/kintai-daily-attendances</div>
-
-        <p style="font-size: 14px; margin-bottom: 20px;">指定した日付の全従業員の打刻実績を一括取得。取得対象期間分を並列リクエスト（fetchAll）し、高速に集計します。</p>
+        <p style="font-size: 14px; margin-bottom: 20px;">休暇申請を取得し、打刻がない日の正当性を検証します。ステータスに基づき、確定実績および申請中データを区別して受理します。</p>
         <table>
           <thead>
             <tr><th>項目名</th><th>キー (JSON)</th><th>役割</th></tr>
           </thead>
           <tbody>
-            <tr><td>社員番号</td><td class="blue-text">employee_id</td><td>名簿Mapとの照合キー。</td></tr>
-            <tr><td>打刻日</td><td>date</td><td>yyyy-MM-dd。</td></tr>
-            <tr><td>出勤/退勤時刻</td><td class="highlight-text">attended_at / left_at</td><td>「hh:mm」形式に整形し判定に使用。</td></tr>
-            <tr><td>休暇名</td><td class="highlight-text">day_off_request_name</td><td>休暇区分として出力。</td></tr>
+            <tr><td>休暇希望日</td><td class="blue-text">requested_date</td><td>打刻データの date と突合。</td></tr>
+            <tr><td>休暇名</td><td class="highlight-text">holiday_name</td><td>有給休暇等の具体的な名称。</td></tr>
+            <tr><td>ステータス</td><td class="highlight-text">status</td><td><strong>1 (承認待ち) または 2 (承認済み)</strong> を突合対象として受理。</td></tr>
           </tbody>
         </table>
       </div>
@@ -438,66 +347,65 @@
       <div class="badge">LOGIC</div>
       <h1>取得対象期間の定義</h1>
       <div class="card">
-        <h2>実行日による動的切り替え</h2>
-        <p style="font-size: 14px;">月末月初と月中で、チェック対象範囲を自動的に最適化します。</p>
+        <h2>実行日による自動切り替え</h2>
+        <p style="font-size: 14px;">自動トリガー実行時の日付に応じて、取得範囲を動的に設定。月中は日次是正、月初は前月是正を目的に最適化します。</p>
         <div class="grid">
           <div class="info-box">
-            <div class="label">毎月 1日 ～ 5日</div>
+            <div class="label">毎月 1日 ～ 5日 (前月是正フェーズ)</div>
             <p style="font-size: 13px;">対象: <span class="highlight-text">前月1日 ～ 前月末日</span></p>
-            <p style="font-size: 11px; color: var(--text-muted); margin-top: 10px;">目的: 締め処理に向けた、前月データの最終整合性チェック。 </p>
+            <p style="font-size: 11px; color: var(--text-muted); margin-top: 10px;">目的: <strong>前月勤怠の締めチェック。</strong> 確定に向けたデータの最終整合性確保。 </p>
           </div>
           <div class="info-box">
-            <div class="label">毎月 6日 ～ 末日</div>
+            <div class="label">毎月 6日 ～ 末日 (日次是正フェーズ)</div>
             <p style="font-size: 13px;">対象: <span class="highlight-text">当月1日 ～ 実行日前日</span></p>
-            <p style="font-size: 11px; color: var(--text-muted); margin-top: 10px;">目的: 進行中の当月の打刻不備を即時発見・是正。 </p>
+            <p style="font-size: 11px; color: var(--text-muted); margin-top: 10px;">目的: <strong>日次の勤怠是正。</strong> 発生した不備を早期に検知し、即時修正を促進。 </p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Slide 5: Sheet Structure -->
+    <!-- Slide 5: Sheet Definitions -->
     <section class="slide">
       <div class="badge">SHEET DESIGN</div>
       <h1>シート構成と役割</h1>
       <div class="card">
         <h2>1. 日次勤怠シート</h2>
-        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">※同期のたびに全件を「洗い替え（clearContents）」出力。書式は一切変更しません。</p>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">※自動同期のたびに clearContents() し、最新のAPIデータを全件上書き展開。</p>
         <table>
           <thead>
-            <tr><th>列</th><th>カラム名</th><th>役割</th></tr>
+            <tr><th>列</th><th>カラム名</th><th>データソース / 加工内容</th></tr>
           </thead>
           <tbody>
-            <tr><td>A</td><td>従業員名</td><td>社員番号に基づき解決された氏名を表示</td></tr>
-            <tr><td>B</td><td>日付</td><td>API取得データ (yyyy-MM-dd)</td></tr>
-            <tr><td>C-D</td><td>出退勤時刻</td><td>HH:mm 形式（打刻なしは「-」）</td></tr>
-            <tr><td>E</td><td>休暇区分</td><td>承認済みの休暇名称</td></tr>
-            <tr><td>F</td><td>判定結果</td><td>シート上の値を元に最新の不備状態を出力</td></tr>
+            <tr><td>A</td><td>従業員名</td><td>last_name + first_name</td></tr>
+            <tr><td>B</td><td>日付</td><td>yyyy-MM-dd</td></tr>
+            <tr><td>C</td><td>出勤時刻</td><td>attended_at (HH:mm)</td></tr>
+            <tr><td>D</td><td>退勤時刻</td><td>left_at (HH:mm)</td></tr>
+            <tr><td>E</td><td>休暇区分</td><td>holiday_name。<strong>ステータスが「1:承認待ち」の場合は名称の末尾に（承認待ち）と追記。</strong></td></tr>
+            <tr><td>F</td><td>判定結果</td><td>不備判定ロジックに基づくステータス</td></tr>
           </tbody>
         </table>
       </div>
       <div class="card">
         <h2>2. 勤怠不備シート</h2>
-        <p style="font-size: 13px; margin-bottom: 10px;">管理者が是正すべき**「現在の不備リスト」**。正常データを除外して抽出します。</p>
-        <p style="font-size: 11px; color: var(--text-muted);">※不備がない場合は「現在、勤怠不備はありません。」と表示されます。</p>
+        <p style="font-size: 13px;">不備（「正常」以外）が発生した履歴を蓄積。通知状況を管理し、同一不備への二重通知を防止する制御用。 </p>
       </div>
     </section>
 
     <!-- Slide 6: Matrix -->
     <section class="slide">
       <div class="badge">ANALYSIS</div>
-      <h1>不備判定ロジック</h1>
+      <h1>不備判定マトリックス</h1>
       <div class="card">
         <table>
           <thead>
-            <tr><th>出勤/退勤打刻</th><th>休暇設定</th><th>判定結果（F列出力）</th></tr>
+            <tr><th>打刻実績</th><th>休暇申請(1:待 or 2:済)</th><th>判定結果</th></tr>
           </thead>
           <tbody>
-            <tr><td>あり (両方)</td><td>なし</td><td><span class="status-pill status-ok">正常</span></td>
-            <tr><td>なし (両方)</td><td>あり</td><td><span class="status-pill status-ok">正常</span></td>
-            <tr><td><strong>あり (両方)</strong></td><td><strong>あり (有給)</strong></td><td><span class="status-pill status-warn">有給取得だが打刻あり</span></td>
-            <tr><td>なし (両方)</td><td>なし</td><td><span class="status-pill status-error">出退勤打刻漏れ</span></td>
-            <tr><td>出勤のみなし</td><td>なし</td><td><span class="status-pill status-error">出勤時打刻漏れ</span></td>
-            <tr><td>退勤のみなし</td><td>なし</td><td><span class="status-pill status-error">退勤時打刻漏れ</span></td>
+            <tr><td>あり (両方)</td><td>なし</td><td><span class="status-pill status-ok">正常勤務</span></td>
+            <tr><td>なし (両方)</td><td><strong>あり (申請中含む)</strong></td><td><span class="status-pill status-ok">有休 / 申請中</span></td>
+            <tr><td>片方のみ空</td><td>なし / 却下</td><td><span class="status-pill status-error">【要確認】打刻漏れ</span></td>
+            <tr><td>なし (両方)</td><td>なし / 却下</td><td><span class="status-pill status-error">【警告】未申請欠勤の疑い</span></td>
+            <tr><td>あり (出勤)</td><td><strong>あり (全休申請)</strong></td><td><span class="status-pill status-warn">【矛盾】有休中の打刻実績</span></td>
           </tbody>
         </table>
       </div>
@@ -509,46 +417,31 @@
       <h1>セキュリティ設計</h1>
       <div class="card">
         <h2>認証情報の管理</h2>
-        <p style="font-size: 14px;">APIキー等の機密情報は「スクリプトプロパティ」に格納し、コード内への直書きを排除します。</p>
+        <p style="font-size: 14px;">APIキーやアクセストークンはシート上に記載せず、バックエンド（GASプロパティ）に秘匿保存します。</p>
         <div class="grid">
           <div class="info-box">
             <div class="label">Script Properties</div>
-            <code style="font-size: 12px; color: var(--accent-blue);">API_KEY / API_SECRET / COMPANY_CODE</code>
+            <code style="font-size: 12px; color: var(--accent-blue);">API_KEY / ACCESS_TOKEN / WEBHOOK_URL</code>
           </div>
           <div class="info-box">
             <div class="label">Execution</div>
-            <p style="font-size: 13px;"><strong>AM 10:00 (毎日実行)</strong><br>管理者のコアタイムに合わせ、即時対応を促します。</p>
+            <p style="font-size: 13px;"><strong>AM 10:00 (毎日実行)</strong><br>管理者の稼働開始に合わせ、日中のリアルタイムな是正対応を可能にするスケジュール設定。 </p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Slide 8: Slack Notification -->
+    <!-- Slide 8: Optional Features -->
     <section class="slide">
-      <div class="badge">NOTIFICATION</div>
-      <h1>Slack通知仕様</h1>
+      <div class="badge">OPTION</div>
+      <h1>操作用シート (手動指定)</h1>
       <div class="card">
-        <h2>通知ルール</h2>
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
-          最新の「勤怠不備シート」にあるレコードを AM 10:00 にまとめて送信します。
-        </p>
-        <div class="slack-mockup">
-          <div class="slack-header">
-            <div class="slack-bot-icon">J</div>
-            <span class="slack-bot-name">Jinjer 勤怠チェック Bot</span>
-            <span class="slack-app-tag">アプリ</span>
-            <span class="slack-time">10:05 AM</span>
-          </div>
-          <div class="slack-content">
-            <div class="slack-message-title">本日迄の勤怠不備をお知らせします</div>
-            <div class="slack-attachment">
-              <div class="slack-line">2026-03-24 <strong>田中 太郎</strong>　出退勤打刻漏れ</div>
-              <div class="slack-line">2026-03-25 <strong>田中 太郎</strong>　出勤時打刻漏れ</div>
-              <div class="slack-line">2026-03-24 <strong>佐藤 花子</strong>　退勤時打刻漏れ</div>
-              <div class="slack-line">2026-03-25 <strong>佐藤 花子</strong>　有給取得だが打刻あり</div>
-            </div>
-          </div>
-        </div>
+        <p style="font-size: 14px;">特殊な事情により、自動判定以外の特定月を再同期したい場合に使用するオプション画面です。</p>
+        <table>
+          <tr><th width="30%">設定項目</th><th>機能説明</th></tr>
+          <tr><td>対象年月指定セル</td><td>yyyy-MM形式で入力。空欄時は自動期間設定に従う。</td></tr>
+          <tr><td>実行ボタン</td><td>指定した月の全データをAPIから強制的に再取得し、シートを最新化。 </td></tr>
+        </table>
       </div>
     </section>
 
