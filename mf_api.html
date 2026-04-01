@@ -1,1 +1,342 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>マネーフォワード クラウド勤怠 不備チェックシステム 仕様書 (API版)</title>
+  <style>
+    :root {
+      --bg-color: #0a0f1e;
+      --sidebar-bg: #0d1428;
+      --card-bg: #141b33;
+      --accent-mf: #0052CC; /* MFブルー */
+      --accent-orange: #f38008; /* 画像のハイライト色 */
+      --text-main: #ffffff;
+      --text-muted: #a0a8c0;
+      --nav-hover: #1a2441;
+      --code-bg: #050814;
+      --border-color: rgba(255, 255, 255, 0.08);
+    }
 
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Inter', 'Hiragino Kaku Gothic ProN', 'ヒラギノ角ゴ ProN W3', 'Meiryo', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      overflow: hidden;
+    }
+
+    .container {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* --- SIDEBAR --- */
+    .sidebar {
+      width: 320px;
+      background-color: var(--sidebar-bg);
+      padding: 40px 0;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border-color);
+      z-index: 10;
+    }
+
+    .nav-menu {
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+
+    .nav-group-title {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin: 32px 24px 16px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-weight: 600;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 16px 24px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 15px;
+      font-weight: 500;
+      position: relative;
+    }
+
+    .nav-item:hover {
+      color: var(--text-main);
+      background-color: var(--nav-hover);
+    }
+
+    /* 画像のオレンジハイライトを再現 */
+    .nav-item.active {
+      color: var(--text-main);
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-item.active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 4px;
+      height: 32px;
+      background-color: var(--accent-orange);
+      border-radius: 0 4px 4px 0;
+    }
+
+    /* --- MAIN CONTENT --- */
+    .main-content {
+      flex: 1;
+      padding: 60px 80px;
+      overflow-y: auto;
+      background: radial-gradient(circle at 80% 20%, #152041 0%, #0a0f1e 60%);
+    }
+
+    .slide {
+      display: none;
+      animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      max-width: 1000px;
+    }
+
+    .slide.active {
+      display: block;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 30px;
+      background: rgba(0, 82, 204, 0.15);
+      color: var(--accent-mf);
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      border: 1px solid rgba(0, 82, 204, 0.3);
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 800;
+      margin-bottom: 40px;
+      line-height: 1.1;
+      letter-spacing: -1px;
+    }
+
+    h2 {
+      font-size: 18px;
+      color: var(--accent-orange);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 24px;
+      padding: 40px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      margin-bottom: 30px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 12px;
+    }
+
+    th {
+      text-align: left;
+      font-size: 12px;
+      color: var(--text-muted);
+      padding: 16px;
+      border-bottom: 1px solid var(--border-color);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    td {
+      padding: 16px;
+      font-size: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    pre {
+      background: var(--code-bg);
+      padding: 24px;
+      border-radius: 16px;
+      border: 1px solid var(--border-color);
+      overflow-x: auto;
+      font-family: 'Fira Code', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .endpoint-tag {
+      background: #238636;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: 800;
+      font-size: 12px;
+      margin-right: 12px;
+    }
+
+    .path {
+      font-family: monospace;
+      color: var(--text-main);
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <aside class="sidebar">
+    <nav class="nav-menu">
+      <div class="nav-group-title">EXECUTIVE SUMMARY</div>
+      <div class="nav-item active" onclick="navigate(0)">01. 概要</div>
+
+      <div class="nav-group-title">TECHNICAL DETAILS</div>
+      <div class="nav-item" onclick="navigate(1)">02. 勤務データ取得 (daily-workings)</div>
+      <div class="nav-item" onclick="navigate(2)">03. 従業員データ取得 (employees)</div>
+
+      <div class="nav-group-title">OPERATIONAL FLOW</div>
+      <div class="nav-item" onclick="navigate(3)">04. 取得対象期間の定義</div>
+      <div class="nav-item" onclick="navigate(4)">05. シート構成と役割</div>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    
+    <!-- Slide 1: Overview -->
+    <section class="slide active">
+      <div class="badge">SPECIFICATION V2.0</div>
+      <h1>MFクラウド勤怠 API連携<br><span style="color: var(--accent-orange);">自動チェックシステム 概要</span></h1>
+      <div class="card">
+        <h2>システムの目的</h2>
+        <p>本システムは、MFクラウド勤怠 APIキー認証を用い、全従業員の勤務状況を自動で監視します。RPAによるCSV手動ダウンロードを完全に廃止し、APIベースの疎結合なデータパイプラインにより、打刻不備のリアルタイム検知を実現します。</p>
+        <p>取得したデータはGoogle Apps Script(GAS)で解析され、条件に合致する不備のみがSlackへ通知されます。</p>
+      </div>
+    </section>
+
+    <!-- Slide 2: Daily Workings API -->
+    <section class="slide">
+      <div class="badge">TECHNICAL DETAILS</div>
+      <h1>02. 勤務データ取得<br><span style="color: var(--text-muted); font-size: 0.6em;">daily-workings API</span></h1>
+      <div class="card">
+        <h2>利用エンドポイント</h2>
+        <p><span class="endpoint-tag">GET</span> <span class="path">/daily_attendances</span></p>
+        <p style="font-size: 13px; color: var(--text-muted);">※「daily-workings」はシステム内部での処理単位としての呼称です。</p>
+        
+        <h2 style="margin-top: 30px;">主要な取得フィールド</h2>
+        <table>
+          <thead>
+            <tr><th>フィールド</th><th>判定ロジック</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>clock_in_at</code></td><td>出勤打刻。nullの場合は「出勤打刻漏れ」</td></tr>
+            <tr><td><code>clock_out_at</code></td><td>退勤打刻。nullの場合は「退勤打刻漏れ」</td></tr>
+            <tr><td><code>attendance_type_name</code></td><td>「平日」「有給休暇」等のステータス判別</td></tr>
+            <tr><td><code>work_pattern_name</code></td><td>パターンの有無で「本来の勤務日」を特定</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Slide 3: Employees API -->
+    <section class="slide">
+      <div class="badge">TECHNICAL DETAILS</div>
+      <h1>03. 従業員データ取得<br><span style="color: var(--text-muted); font-size: 0.6em;">employees API</span></h1>
+      <div class="card">
+        <h2>利用エンドポイント</h2>
+        <p><span class="endpoint-tag">GET</span> <span class="path">/employees</span></p>
+        
+        <h2 style="margin-top: 30px;">レスポンス構造 (GASパース用)</h2>
+        <pre><code>{
+  "employees": [
+    {
+      "id": "uuid-string",
+      "number": "EMP001",
+      "name": "髙田 勝一",
+      "is_active": true
+    }
+  ]
+}</code></pre>
+        <p style="font-size: 14px; margin-top: 20px;">
+          取得した <code>id</code> は、日次勤怠取得時のフィルタリングキーとして利用します。
+        </p>
+      </div>
+    </section>
+
+    <!-- Slide 4: Target Period -->
+    <section class="slide">
+      <div class="badge">OPERATIONAL FLOW</div>
+      <h1>04. 取得対象期間の定義</h1>
+      <div class="card">
+        <h2>実行タイミングと対象範囲</h2>
+        <table>
+          <thead>
+            <tr><th>実行期間</th><th>データ取得範囲</th><th>運用目的</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>毎月 1日 ～ 5日</td><td>前月 1日 ～ 末日</td><td>月次確定前の最終チェック</td></tr>
+            <tr><td>毎月 6日 ～ 末日</td><td>当月 1日 ～ 前日</td><td>月中の不備早期修正</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size: 14px; margin-top: 20px; color: var(--text-muted);">
+          GAS側で <code>new Date()</code> を基に <code>from_date</code> と <code>to_date</code> を動的に生成します。
+        </p>
+      </div>
+    </section>
+
+    <!-- Slide 5: Sheet Roles -->
+    <section class="slide">
+      <div class="badge">OPERATIONAL FLOW</div>
+      <h1>05. シート構成と役割</h1>
+      <div class="card">
+        <h2>1. [RAW] 日次勤怠シート</h2>
+        <p>APIから取得した全データを展開。不備のない正常データも監査ログとして保持します。</p>
+        
+        <h2 style="margin-top: 30px;">2. [LOG] 不備履歴シート</h2>
+        <p>判定ロジックにより「不備」とみなされた行のみを蓄積。Slackへの通知重複を防ぐための「通知済みフラグ」を管理します。</p>
+
+        <h2 style="margin-top: 30px;">3. [SET] 設定シート</h2>
+        <p>Slack Webhook URLや通知先チャンネル、対象外とする従業員ID等を管理します。</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  function navigate(index) {
+    const slides = document.querySelectorAll('.slide');
+    const items = document.querySelectorAll('.nav-item');
+    slides.forEach(s => s.classList.remove('active'));
+    items.forEach(i => i.classList.remove('active'));
+    slides[index].classList.add('active');
+    items[index].classList.add('active');
+  }
+</script>
+
+</body>
+</html>
